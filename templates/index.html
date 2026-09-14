@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Performance Analyzer</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: 0.3s;
+        }
+
+        body.dark {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .container {
+            background: white;
+            width: 950px;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transition: 0.3s;
+        }
+
+        body.dark .container {
+            background: rgba(30, 41, 59, 0.9);
+            color: #f1f5f9;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .section {
+            margin-top: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        input,
+        select {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        body.dark input,
+        body.dark select {
+            background: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+        }
+
+        .subject-box {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        body.dark .subject-box {
+            background: #334155;
+            border-left: 4px solid #38bdf8;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            background: #2a5298;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e3c72;
+        }
+
+        body.dark button {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            padding: 6px 12px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 110px;
+            background: #ef4444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .report {
+            margin-top: 35px;
+            background: #f5f7fb;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        body.dark .report {
+            background: #334155;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .excellent {
+            background: #22c55e;
+        }
+
+        .good {
+            background: #3b82f6;
+        }
+
+        .average {
+            background: #f59e0b;
+        }
+
+        .low {
+            background: #ef4444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        body.dark th {
+            color: #38bdf8;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #ef4444;
+            color: white;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .suggest-box {
+            background: rgba(56, 189, 248, 0.1);
+            padding: 15px;
+            border-left: 4px solid #38bdf8;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <div class="container">
+
+            <button onclick="toggleMode()" class="toggle-btn">🌙</button>
+            <a href="/logout" class="logout-btn">Logout</a>
+
+            <h1>🎓 Student Performance Analyzer</h1>
+            <p style="text-align:right;">👋 Welcome, {{session['user']}}</p>
+
+            <form action="/predict" method="post">
+
+                <div class="section">
+                    <h3>Basic Details</h3>
+                    <div class="form-row">
+                        <input name="attendance" placeholder="Attendance %" required>
+                        <input name="prevcgpa" placeholder="Previous CGPA" required>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Select Branch & Semester</h3>
+                    <div class="form-row">
+                        <select id="branch" name="branch">
+                            <option value="">Select Branch</option>
+                            <option value="CSE">CSE</option>
+                            <option value="AI">AI</option>
+                            <option value="IT">IT</option>
+                        </select>
+
+                        <select id="semester" name="semester">
+                            <option value="">Select Semester</option>
+                            <option value="1">Sem I</option>
+                            <option value="2">Sem II</option>
+                            <option value="3">Sem III</option>
+                            <option value="4">Sem IV</option>
+                            <option value="5">Sem V</option>
+                            <option value="6">Sem VI</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Subjects & Marks</h3>
+                    <div id="subjects-container"></div>
+                </div>
+
+                <button type="submit">Analyze Performance</button>
+            </form>
+
+            {% if predicted %}
+            <div class="report">
+
+                <h3>📊 Performance Report</h3>
+
+                <p><b>Attendance:</b> {{attendance}}%</p>
+                <div style="background:#ddd; border-radius:20px;">
+                    <div style="width: {{attendance}}%; background:#22c55e; height:18px;"></div>
+                </div>
+
+                <p><b>Previous CGPA:</b> {{prevcgpa}}</p>
+                <p><b>Calculated SGPA:</b> {{sgpa}}</p>
+
+                <hr>
+
+                <h4>📚 Subjects & Marks</h4>
+                <table>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                    </tr>
+                    {% for i in range(subjects|length) %}
+                    <tr>
+                        <td>{{subjects[i].name}}</td>
+                        <td style="
+                color:
+                {% if marks[i] >= 80 %}#22c55e
+                {% elif marks[i] >= 60 %}#f59e0b
+                {% else %}#ef4444
+                {% endif %}
+                ">
+                            {{marks[i]}}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <hr>
+
+                <div style="text-align:center;">
+                    <h2>🎯 Predicted CGPA</h2>
+                    <h1 style="font-size:60px; color:#38bdf8;">{{predicted}}</h1>
+                </div>
+
+                <p><b>CGPA Progress</b></p>
+                <div style="background:#334155; border-radius:20px;">
+                    <div style="width: {{predicted*10}}%; background:#38bdf8; height:18px;"></div>
+                </div>
+
+                <p>
+                    <b>Performance Category:</b>
+                    <span class="badge 
+            {% if category == 'Excellent Performer' %}excellent
+            {% elif category == 'Good Performer' %}good
+            {% elif category == 'Average Performer' %}average
+            {% else %}low{% endif %}">
+                        {{category}}
+                    </span>
+                </p>
+
+                <hr>
+
+                <h4>⚠️ Weak Subjects</h4>
+                {% if weak|length == 0 %}
+                <p>No weak subjects</p>
+                {% else %}
+                {% for w in weak %}
+                <span class="chip">{{w}}</span>
+                {% endfor %}
+                {% endif %}
+
+                <hr>
+
+                <h4>💡 Suggestions</h4>
+                <div class="suggest-box">
+                    <ul>
+                        {% for s in suggestions %}
+                        <li>{{s}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <p><b>Expected CGPA After Improvement:</b> {{improved}}</p>
+
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <script>
+        function toggleMode() {
+            document.body.classList.toggle("dark");
+            localStorage.setItem("mode", document.body.classList.contains("dark") ? "dark" : "light");
+        }
+
+        window.onload = function () {
+            if (localStorage.getItem("mode") === "dark") {
+                document.body.classList.add("dark");
+            }
+        };
+
+        document.getElementById("branch").addEventListener("change", loadSubjects);
+        document.getElementById("semester").addEventListener("change", loadSubjects);
+
+        function loadSubjects() {
+            let branch = document.getElementById("branch").value;
+            let semester = document.getElementById("semester").value;
+
+            if (!branch || !semester) return;
+
+            fetch("/get_subjects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ branch, semester })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    let container = document.getElementById("subjects-container");
+                    container.innerHTML = "";
+
+                    data.forEach((sub, index) => {
+                        container.innerHTML += `
+            <div class="subject-box">
+                <b>${sub.name}</b> (Credit: ${sub.credit})
+                <br>
+                <input type="number" name="marks${index}" min="0" max="100" required>
+            </div>`;
+                    });
+                });
+        }
+    </script>
+
+</body>
+
+</html>
