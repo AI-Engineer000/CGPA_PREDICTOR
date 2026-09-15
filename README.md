@@ -3,7 +3,6 @@
 A Flask-based student CGPA prediction web app that helps users estimate their future CGPA based on attendance, previous CGPA, and current semester SGPA.
 
 ## Features
-
 - User signup and login
 - Student authentication using SQLite
 - Branch and semester subject selection
@@ -11,6 +10,14 @@ A Flask-based student CGPA prediction web app that helps users estimate their fu
 - CGPA prediction using a linear regression model
 - Performance category and improvement suggestions
 - Simple responsive HTML dashboard
+
+##Project Workflow
+- User creates an account and logs in.
+- Student selects the required branch and semester details.
+- Academic information such as attendance, previous CGPA and current SGPA is provided.
+- The system calculates the current academic performance.
+- The Linear Regression model predicts the expected CGPA.
+- The dashboard displays the prediction along with performance category and improvement suggestions.
 
 ## Tech Stack
 
@@ -83,6 +90,7 @@ http://127.0.0.1:5000
 - Select your branch and semester
 - Enter your marks for each subject
 - Submit the form to view predicted CGPA and suggestions
+  
 
 ## Notes
 
